@@ -3,9 +3,8 @@ package gui;
 import application.Main;
 import graph.Graph;
 import graph.ModeOfGraph;
+import javafx.animation.PauseTransition;
 import javafx.application.Platform;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
@@ -13,12 +12,11 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.Node;
 import javafx.scene.control.*;
-import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 
 import java.io.File;
 import java.io.IOException;
@@ -29,7 +27,9 @@ public class Controller implements Initializable {
 
     private static int mode = 0;
     private static Graph graph;
-    Service service;
+    private static double zoomDelta;
+    private PauseTransition pauseForZoomSlider;
+    private Service service;
 
     @FXML
     Button B_Open;
@@ -41,6 +41,8 @@ public class Controller implements Initializable {
     Button B_Reset;
     @FXML
     Button B_Add_path;
+    @FXML
+    Button B_RemoveStart;
 
     @FXML
     TextField TF_Columns, TF_Rows;
@@ -71,7 +73,12 @@ public class Controller implements Initializable {
     AnchorPane AP_GraphDisplay;
 
     @FXML
-    ScrollPane SP_GraphFrame;
+    ScrollPane P_GraphFrame;
+
+    @FXML
+    Pane P_AlgorithmsVisualtisationFrame;
+    @FXML
+    Pane P_GenrateOptionFrame;
 
     public void setGeneratorMode(ActionEvent Event) {
         RadioButton RB = (RadioButton) Event.getSource();
@@ -113,8 +120,7 @@ public class Controller implements Initializable {
         fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Text Files", "*.txt"));
         Stage stage = (Stage) ((Node) Event.getSource()).getScene().getWindow();
         File selectedFile = fileChooser.showOpenDialog(stage);
-        if (graph == null)
-            graph = new Graph();
+        if (graph == null) graph = new Graph();
 
         if (selectedFile != null) {
             try {
@@ -159,8 +165,7 @@ public class Controller implements Initializable {
         }
         int start = getStartFromTextField();
         int end = getEndFromTextField();
-        if (start == -1 || end == -1)
-            return;
+        if (start == -1 || end == -1) return;
         disableFromTextField(true);
         if (ListElement.doesPathExist(end)) {
             printMessage(10);
@@ -169,6 +174,9 @@ public class Controller implements Initializable {
         new ListElement(start, end);
     }
 
+    public void RemoveStart(ActionEvent Event) {
+        ListElement.Reset();
+    }
 
     public void CreateNewGraph(ActionEvent ignoreEvent) {
         printMessage(0);
@@ -179,13 +187,14 @@ public class Controller implements Initializable {
         double maxWage = getMaxWageFromTextField();
         int cols = getColsFromTextField();
         int rows = getRowsFromTextFields();
-        if (cols == -1 || rows == -1 || minWage == -1 || maxWage == -1)
-            return;
+        if (cols == -1 || rows == -1 || minWage == -1 || maxWage == -1) return;
         if (minWage > maxWage) {
             printMessage(8);
             return;
         }
         ListElement.Reset();
+        S_zoom.setValue(0);
+        B_Generate.setDisable(true);
         service = new Service<>() {
             @Override
             public Task<Object> createTask() {
@@ -195,12 +204,13 @@ public class Controller implements Initializable {
                         setDisableRadioButtonsForVisualisation(true);
                         GraphGenerate(cols, rows, minWage, maxWage);
                         Platform.runLater(() -> setNewGraphView());
+                        Thread.sleep(2000);
+                        B_Generate.setDisable(false);
                         return null;
                     }
                 };
             }
 
-            ;
         };
         service.start();
     }
@@ -212,8 +222,9 @@ public class Controller implements Initializable {
         AP_GraphDisplay.setPrefSize(400 / GraphView.getPane().getPrefWidth(), 400 / GraphView.getPane().getPrefHeight());
         AP_GraphDisplay.setScaleY(400 / GraphView.getPane().getPrefWidth());
         AP_GraphDisplay.setScaleX(400 / GraphView.getPane().getPrefWidth());
-        SP_GraphFrame.setPrefSize(400, 400);
-        SP_GraphFrame.setContent(AP_GraphDisplay);
+        P_GraphFrame.setPrefSize(400, 400);
+        P_GraphFrame.setContent(AP_GraphDisplay);
+        zoomDelta = 400 / GraphView.getPane().getPrefWidth();
     }
 
     private void GraphGenerate(int cols, int rows, double minWage, double maxWage) {
@@ -234,7 +245,7 @@ public class Controller implements Initializable {
             ErrorEffectForTextField(TF_Lower_wage);
             return -1;
         }
-        if (minWage < 1 || minWage >= 10000 || minWage * 10000000 % 1000 != 0) {
+        if (minWage < 0.0001 || minWage >= 10000 || minWage * 10000000 % 1000 != 0) {
             printMessage(1);
             return -1;
         }
@@ -429,20 +440,93 @@ public class Controller implements Initializable {
         }
     }
 
+    private void frame(Pane pane) {
+        pane.setBorder(new Border(new BorderStroke(Color.LIGHTGRAY, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, new BorderWidths(3))));
+    }
+
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        S_zoom.valueProperty().addListener(new ChangeListener<Number>() {
-            @Override
-            public void changed(ObservableValue<? extends Number> observableValue, Number number, Number t1) {
-                double v = 400 / GraphView.getPane().getPrefWidth();
-                double zoom = v + S_zoom.getValue() / 100;
-                AP_GraphDisplay.setScaleY(zoom);
-                AP_GraphDisplay.setScaleX(zoom);
-            }
+        frame(P_AlgorithmsVisualtisationFrame);
+        frame(P_GenrateOptionFrame);
+        pauseForZoomSlider = new PauseTransition(Duration.seconds(0.5));
+        pauseForZoomSlider.setOnFinished(event -> {
+            new Thread(() -> {
+                double pocz = 400 / GraphView.getPane().getPrefWidth();
+                double kon = 1;
+                double scale = pocz + (S_zoom.getValue() / 100) * (kon - pocz);
+                zoomDelta = scale;
+                scaleGraph(scale);
+                moveRight();
+                moveDown();
+            }).start();
         });
+        S_zoom.valueProperty().addListener((observableValue, number, t1) -> {
+            pauseForZoomSlider.playFromStart();
+        });
+    }
+
+    private void scaleGraph(double zoom) {
+        AP_GraphDisplay.setScaleY(zoom);
+        AP_GraphDisplay.setScaleX(zoom);
     }
 
     public Graph getGraph() {
         return graph;
+    }
+
+    public void moveUp() {
+        Pane pane = AP_GraphDisplay;
+        double transeltionY = pane.getTranslateY();
+        if (transeltionY <= -10) pane.setTranslateY(transeltionY + 10);
+    }
+
+    public void moveDown() {
+        Pane pane = AP_GraphDisplay;
+        double translateY = pane.getTranslateY();
+        double graphLength = 400 / pane.getPrefHeight() * zoomDelta;
+        double frameLength = 400;
+        double maxTranslate = graphLength - frameLength;
+        if (maxTranslate + translateY > 10) pane.setTranslateY(translateY - 10);
+        else if (maxTranslate + translateY != 0) pane.setTranslateY(-maxTranslate);
+    }
+
+    public void moveLeft() {
+        Pane pane = AP_GraphDisplay;
+        double transeltionX = pane.getTranslateX();
+        if (transeltionX <= -10) pane.setTranslateX(transeltionX + 10);
+    }
+
+    public void moveRight() {
+        Pane pane = AP_GraphDisplay;
+        double transeltionX = pane.getTranslateX();
+        double graphLength = 400 / pane.getPrefHeight() * zoomDelta;
+        double frameLength = 400;
+        double maxTransletion = graphLength - frameLength;
+        if (maxTransletion + transeltionX > 10) pane.setTranslateX(transeltionX - 10);
+        else if (maxTransletion + transeltionX != 0) pane.setTranslateX(-maxTransletion);
+    }
+
+    public void ZoomIn() {
+        double value = S_zoom.getValue();
+        if (value <= 90) {
+            S_zoom.setValue(value + 10);
+        }
+    }
+
+    public void ZoomOut() {
+        double value = S_zoom.getValue();
+        if (value >= 10) {
+            S_zoom.setValue(value - 10);
+        }
+    }
+
+    public void printAPLocation() {
+        Pane pane = AP_GraphDisplay;
+        double translateX = pane.getTranslateX();
+        double graphLength = 400 / pane.getPrefHeight();
+        double frameLength = graphLength * zoomDelta;
+        double maxTranslate = graphLength - frameLength;
+        if (Main.debug)
+            System.out.println("TranselrionX = " + translateX + " GraphLength = " + graphLength + " frameLength = " + frameLength + " maxTransletion = " + maxTranslate + " zoomDelta = " + zoomDelta);
     }
 }

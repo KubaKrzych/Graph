@@ -2,6 +2,8 @@ package graph;
 
 import java.util.Random;
 
+import static graph.Direction.*;
+
 public class Generator extends Grid implements Iterable<Object> {
 
     private static final double CHANCE_OF_EDGE_TO_EXIST = 50;
@@ -21,10 +23,10 @@ public class Generator extends Grid implements Iterable<Object> {
 
 
     public Node[] generateAllRandomGrid() {
-        if(shouldGenerateNewGrid())
+        if (shouldGenerateNewGrid())
             generateBlankGrid();
         for (int nodeNumber = 0; nodeNumber < size(); nodeNumber++)
-            for (int i = Direction.NORTH.getValue(); i <= Direction.WEST.getValue(); i++) {
+            for (int i = NORTH.getValue(); i <= WEST.getValue(); i++) {
                 Direction direction = Direction.directionFromInteger(i);
                 if (validator.edgeCouldExistFromNodeToDirection(nodeNumber, direction) && randomChanceOfEdgeExist())
                     addEdgeFromNodeNumToDirection(nodeNumber, direction);
@@ -45,7 +47,7 @@ public class Generator extends Grid implements Iterable<Object> {
         if (shouldGenerateNewGrid())
             generateBlankGrid();
         for (int nodeNumber = 0; nodeNumber < getNumberOfColumns() * getNumberOfRows(); nodeNumber++)
-            for (int i = Direction.NORTH.getValue(); i <= Direction.WEST.getValue(); i++) {
+            for (int i = NORTH.getValue(); i <= WEST.getValue(); i++) {
                 Direction direction = Direction.directionFromInteger(i);
                 if (validator.edgeCouldExistFromNodeToDirection(nodeNumber, direction))
                     addEdgeFromNodeNumToDirection(nodeNumber, direction);
@@ -96,8 +98,8 @@ public class Generator extends Grid implements Iterable<Object> {
         return getNodes() == null || getNodes().length != size();
     }
 
-    private void resetGrid(){
-        for(int i = 0; i < size(); i++)
+    private void resetGrid() {
+        for (int i = 0; i < size(); i++)
             this.getNodeAtIndex(i).resetNode();
     }
 }

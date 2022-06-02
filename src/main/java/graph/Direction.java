@@ -9,18 +9,16 @@ public enum Direction {
 
     private final int value;
 
-    Direction(int value)
-    {
+    Direction(int value) {
         this.value = value;
     }
 
-    public int getValue()
-    {
+    public int getValue() {
         return value;
     }
 
-    public static Direction directionFromInteger(int direction)  throws IncorrectDirectionException {
-        switch(direction){
+    public static Direction directionFromInteger(int direction) throws IncorrectDirectionException {
+        switch (direction) {
             case 0:
                 return NORTH;
             case 1:
@@ -30,11 +28,12 @@ public enum Direction {
             case 3:
                 return WEST;
             default:
-                throw new IncorrectDirectionException("Nie istnieje podany kierunek.");
+                throw new IncorrectDirectionException("Given Directions does not exist.");
         }
     }
-    public static Direction getOppositeDirection(Direction direction) throws IncoherentException{
-        switch (direction){
+
+    public static Direction getOppositeDirection(Direction direction) throws IncoherentException {
+        switch (direction) {
             case NORTH:
                 return SOUTH;
             case SOUTH:
@@ -44,11 +43,11 @@ public enum Direction {
             case WEST:
                 return EAST;
             default:
-                throw new IncoherentException("Nie istnieje podany kierunek.");
+                throw new IncoherentException("Given Directions does not exist.");
         }
     }
 
-    public static Direction[] getAllDirections(){
+    public static Direction[] getAllDirections() {
         return new Direction[]{NORTH, EAST, SOUTH, WEST};
     }
 }

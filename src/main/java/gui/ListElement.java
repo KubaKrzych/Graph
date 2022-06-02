@@ -17,7 +17,7 @@ public class ListElement {
     private static int numberOfPaths = 0;
     private static int PathStart = -1;
 
-    private static ListElement[] listElements = new ListElement[maxNumberOfPaths];
+    private static final ListElement[] listElements = new ListElement[maxNumberOfPaths];
 
     private static final int heightOfLabel = 25;
     private int id;
@@ -38,10 +38,12 @@ public class ListElement {
             Main.getController().printMessage(10);
             return;
         }
+        if (PathStart == end)
+            return;
         if (PathStart == -1) {
             setPathStart(start);
             controller.disableFromTextField(true);
-            GraphView.getNodeViews(PathStart).changeColor();
+            GraphView.getNodeView(PathStart).selectColor();
             controller.setDisableRadioButtonsForVisualisation(false);
         }
         Queue<Integer> queueOfPath;
@@ -76,8 +78,8 @@ public class ListElement {
         P_pane.setVisible(true);
         listElements[numberOfPaths++] = this;
 
-        GraphView.getNodeViewFromId(end).changeColor();
-        GraphView.getNodeViewFromId(end).setListElement(this);
+        GraphView.getNodeView(end).selectColor();
+        GraphView.getNodeView(end).setListElement(this);
         newPathView(GraphView.getColorFromScale(10, 0, numberOfPaths), queueOfPath);
         controller.AP_Paths.getChildren().add(P_pane);
         controller.AP_GraphDisplay.getChildren().addAll(pathView);
@@ -94,10 +96,10 @@ public class ListElement {
             if (queueOfPath.isEmpty())
                 break;
             int idL = queueOfPath.peek();
-            Line line = new Line(GraphView.getNodeViewFromId(idF).getLayoutX(),
-                    GraphView.getNodeViewFromId(idF).getLayoutY(),
-                    GraphView.getNodeViewFromId(idL).getLayoutX(),
-                    GraphView.getNodeViewFromId(idL).getLayoutY());
+            Line line = new Line(GraphView.getNodeView(idF).getLayoutX(),
+                    GraphView.getNodeView(idF).getLayoutY(),
+                    GraphView.getNodeView(idL).getLayoutX(),
+                    GraphView.getNodeView(idL).getLayoutY());
             line.setStroke(pathViewColor);
             line.setStrokeWidth(5);
             line.setVisible(true);
@@ -136,9 +138,13 @@ public class ListElement {
             setPathStart(-1);
             GraphView.updateNodesColorByWage();
         } else {
-            GraphView.getNodeViewFromId(PathEnd).resetColor();
+            GraphView.getNodeView(PathEnd).unselectColor();
         }
         showPath(false);
+    }
+
+    public static boolean mayStartBeRemoved() {
+        return numberOfPaths == 0 & getPathStart() != -1;
     }
 
     public static int getPathStart() {
@@ -147,12 +153,17 @@ public class ListElement {
 
     public static void setPathStart(int start) {
         PathStart = start;
+        Controller controller = Main.getController();
         if (start == -1) {
-            Main.getController().setDisableRadioButtonsForVisualisation(true);
-            Main.getController().disableFromTextField(false);
+            controller.setDisableRadioButtonsForVisualisation(true);
+            controller.disableFromTextField(false);
+            GraphView.updateNodesColorByWage();
+            controller.TF_From.setText("");
         } else {
-            Main.getController().setDisableRadioButtonsForVisualisation(false);
-            Main.getController().disableFromTextField(true);
+            controller.setDisableRadioButtonsForVisualisation(false);
+            controller.disableFromTextField(true);
+            GraphView.getNodeView(start).selectColor();
+            controller.TF_From.setText("" + start);
         }
     }
 

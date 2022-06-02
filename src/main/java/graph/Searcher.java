@@ -17,7 +17,8 @@ public class Searcher {
 
     private void setAndResetFields() {
         if (priorityQueue == null) {
-            priorityQueue = new PriorityQueue<>(grid.size(), new WeightComparator());
+            priorityQueue = new PriorityQueue<>(grid.size(), (o1, o2) ->
+                    Double.compare(weightToNodeFromSource[o1], weightToNodeFromSource[o2]));
         } else {
             Arrays.fill(visited, false);
             Arrays.fill(preVisited, false);
@@ -130,14 +131,6 @@ public class Searcher {
         }
     }
 
-    private class WeightComparator implements Comparator<Integer> {
-
-        @Override
-        public int compare(Integer o1, Integer o2) {
-            return Double.compare(weightToNodeFromSource[o1], weightToNodeFromSource[o2]);
-        }
-    }
-
     public Queue<Integer> getPathing(int sourceNode, int destinationNode, boolean bfs) throws IncoherentException {
         startPathingFromSource(sourceNode, bfs);
         Queue<Integer> path = new LinkedList<>();
@@ -153,8 +146,6 @@ public class Searcher {
         path.add(sourceNode);
         return path;
     }
-
-    //TODO jak scalic te metody, zachowujac ich dzialanie?
 
     public Queue<Double> getNextWeights(int sourceNode, int destinationNode, boolean bfs) throws IncoherentException {
         startPathingFromSource(sourceNode, bfs);

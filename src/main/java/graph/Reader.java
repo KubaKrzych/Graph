@@ -19,16 +19,15 @@ public class Reader {
         Generator generator = new Generator();
 
         if (splittedWords.length != 2)
-            throw new IOException("Niepoprawna struktura pliku.");
+            throw new IOException("File's first line must contain number of rows x number of columns.");
         try {
             setGenerator(generator, Integer.parseInt(splittedWords[0]), Integer.parseInt(splittedWords[1]));
             while ((line = bufferedReader.readLine()) != null) {
-                line = line.trim();
-                line += "\n";
+                line = line.trim() + "\n";
                 line = line.replaceAll(":", "");
                 splittedWords = line.split("\\s+");
                 if (splittedWords.length % 2 != 0)
-                    throw new IOException("Niepoprawna struktura pliku. Linijka nr.:" + (lineNumber + 1));
+                    throw new IOException("Incorrect file structure. Line nr.:" + (lineNumber + 1));
                 for (int i = 0; i < splittedWords.length; i += 2) {
                     node = Integer.parseInt(splittedWords[i]);
                     weight = Math.round(Double.parseDouble(splittedWords[i + 1]) * 10000.0) / 10000.0;
@@ -38,12 +37,12 @@ public class Reader {
                     else if (weight < minWeight)
                         minWeight = weight;
                     else if (weight < 0)
-                        throw new IOException("Waga krawędzi nie może być ujemna");
+                        throw new IOException("Edge weight must not be negative.");
                 }
                 lineNumber++;
             }
         } catch (NumberFormatException | IncorrectGraphStructureException | ArrayIndexOutOfBoundsException exception) {
-            throw new IOException("Niepoprawna struktura pliku. Linijka nr.:" + (lineNumber + 1));
+            throw new IOException("Incorrect file structure. Line nr.:" + (lineNumber + 1));
         } finally {
             bufferedReader.close();
         }

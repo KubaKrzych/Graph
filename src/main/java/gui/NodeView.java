@@ -5,8 +5,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 
 public class NodeView extends Circle {
-    private boolean hidden = false;
-    private int id;
+    private final int id;
     private Color color;
     private ListElement listElement;
 

@@ -1,5 +1,6 @@
 package gui;
 
+import application.Main;
 import graph.Direction;
 import graph.Graph;
 import graph.Node;
@@ -28,12 +29,10 @@ public class GraphView {
         numberOfColumns = graph.getNumberOfColumns();
         numberOfRows = graph.getNumberOfRows();
         nodeViews = new NodeView[numberOfRows * numberOfColumns];
-        newPane();
-        Direction[] directions = {NORTH, EAST, SOUTH, WEST};
-
         int layoutX, layoutY, id, length = sizeE + sizeN / 2;
         double edgeWage;
-
+        newPane();
+        Direction[] directions = {NORTH, EAST, SOUTH, WEST};
         for (int row = 0; row < numberOfRows; row++) {
             for (int column = 0; column < numberOfColumns; column++) {
                 layoutX = startX + column * sizeN + (column - 1) * sizeE;
@@ -63,7 +62,7 @@ public class GraphView {
         return max;
     }
 
-    public static NodeView getNodeViews(int id) {
+    public static NodeView getNodeView(int id) {
         return nodeViews[id];
     }
 
@@ -91,10 +90,6 @@ public class GraphView {
         return pane;
     }
 
-    public static NodeView getNodeViewFromId(int id) {
-        return nodeViews[id];
-    }
-
     public static void updateNodesColorByWage() {
         for (int nodesId = 0; nodesId < nodeViews.length; nodesId++) {
             nodeViews[nodesId].setColor(Color.GRAY);
@@ -120,26 +115,27 @@ public class GraphView {
 
     public static Color getColorFromScale(double MaxValue, double minValue, double value) {
         if (value < 0 || MaxValue < value || MaxValue < minValue || value < minValue) {
-//            System.out.println("Given value is out of scope. min value = " + minValue + ", max value = " + MaxValue + ", value given = " + value);
+            if (Main.debug)
+                System.out.println("Given value is out of scope. min value = " + minValue + ", max value = " + MaxValue + ", value given = " + value);
             return Color.WHITE;
         }
         if (minValue == MaxValue) {
             return Color.WHITE;
         }
         int standardizedValue = (int) Math.round((value - minValue) * 1275 / (MaxValue - minValue));
-        if ((0 <= standardizedValue) && (standardizedValue < 255)) {    //0 - 255
+        if ((0 <= standardizedValue) && (standardizedValue < 255)) {
             return Color.rgb((255 - standardizedValue), 255, 0);
         }
-        if ((255 <= standardizedValue) && (standardizedValue < 2 * 255)) { //256 - 510
+        if ((255 <= standardizedValue) && (standardizedValue < 2 * 255)) {
             return Color.rgb(0, 255, (standardizedValue - 255));
         }
-        if ((2 * 255 <= standardizedValue) && (standardizedValue < 3 * 255)) {//511 - 765
+        if ((2 * 255 <= standardizedValue) && (standardizedValue < 3 * 255)) {
             return Color.rgb(0, 255 * 3 - standardizedValue, 255);
         }
-        if ((3 * 255 <= standardizedValue) && (standardizedValue < 4 * 255)) {//766 - 1020
+        if ((3 * 255 <= standardizedValue) && (standardizedValue < 4 * 255)) {
             return Color.rgb(standardizedValue - 255 * 3, 0, 255);
         }
-        if ((4 * 255 <= standardizedValue) && (standardizedValue <= 5 * 255)) {//1021 - 1275
+        if ((4 * 255 <= standardizedValue) && (standardizedValue <= 5 * 255)) {
             return Color.rgb(255, 0, 255 * 5 - standardizedValue);
         }
         return null;

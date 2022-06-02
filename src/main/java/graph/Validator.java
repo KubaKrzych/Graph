@@ -1,5 +1,6 @@
 package graph;
 
+import static graph.Direction.*;
 public class Validator {
     private final Generator generator;
 
@@ -16,7 +17,7 @@ public class Validator {
 
     private boolean nodeIsLastInRowAndNeighbourIsTheInNextRow(int numberOfNode, Direction direction) {
         return numberOfNode % generator.getNumberOfColumns() == generator.getNumberOfColumns() - 1
-                && direction == Direction.EAST;
+                && direction == EAST;
     }
 
     private boolean nodeIsInFirstColumnAndNeighbourIsInRowBefore(int numberOfNode, Direction direction) {
@@ -25,22 +26,22 @@ public class Validator {
 
     private boolean nodeIsInLastRowAndNeighbourIsInTheNextRow(int numberOfNode, Direction direction) {
         return numberOfNode >= generator.getNumberOfColumns() * (generator.getNumberOfRows() - 1)
-                && direction == Direction.SOUTH;
+                && direction == SOUTH;
     }
 
     private boolean nodeIsInFirstRowAndNeighbourIsInTheRowBefore(int numberOfNode, Direction direction) {
-        return numberOfNode < generator.getNumberOfColumns() && direction == Direction.NORTH;
+        return numberOfNode < generator.getNumberOfColumns() && direction == NORTH;
     }
 
     public Direction directionFromNodeToNode(int fromNode, int toNode) throws IncorrectGraphStructureException {
         if (fromNode == toNode + 1)
-            return Direction.WEST;
+            return WEST;
         else if (fromNode == toNode - 1)
-            return Direction.EAST;
+            return EAST;
         else if (fromNode == toNode + generator.getNumberOfColumns())
-            return Direction.NORTH;
+            return NORTH;
         else if (fromNode == toNode - generator.getNumberOfColumns())
-            return Direction.SOUTH;
+            return SOUTH;
         throw new IncorrectGraphStructureException("Nie istnieje droga między parą wierzchołków o numerach ("
                 + fromNode + ", " + toNode + ").");
     }
